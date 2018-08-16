@@ -15,7 +15,8 @@ Endpoint para subir las imagenes(una a una)(POST): http://localhost:8000/ticket/
 Endpoint para ver los tickets a los que tiene acceso el usuario asociado al token entregado al servicio (GET): http://localhost:8000/api/tickets/</br>
 <b>usando los parametros en Headers:</b></br> Authorization: Token [token asociado al usuario]</br>
 <b>usando los parametros en url:</b></br> since [Fecha], until [Fecha], full [1|0]</br>
-los parametros since (fecha desde), until (fecha hasta), full (1 ó 0) pueden combinarse para filtrar por rango de fechas[since --> until] y por estado (completado o no completado)
+los parametros since (fecha desde), until (fecha hasta), full (1 ó 0) pueden combinarse para filtrar por rango de fechas[since --> until] y por estado (completado o no completado)</br>
+<i>Nota: </i> Los parametros de fecha deben tener el formato YYYY-MM-DD
 
 Endpoint para ver un ticket en especifico, solo si tiene acceso a él (GET): http://localhost:8000/api/tickets/[id del ticket]
 
