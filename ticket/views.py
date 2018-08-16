@@ -214,7 +214,8 @@ class FotoViewSet(viewsets.ModelViewSet):
 					return Response(respuesta)
 
 def uploadPhoto(request):
-	token=Token.objects.filter(key=request.POST['Authorization'].split(' ')[1])
+	print (request.META['HTTP_AUTHORIZATION'].split(' ')[1])
+	token=Token.objects.get(key=request.META['HTTP_AUTHORIZATION'].split(' ')[1])
 	if token:
 		if request.method=='POST':
 			try:
