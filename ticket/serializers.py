@@ -19,7 +19,7 @@ class TicketSerializer(serializers.HyperlinkedModelSerializer):
 		fields=('id','user','user_id','fechaCreacion','cantidadFotos','completado','porcentajeCumpletado')
 
 	def _porcentaje(self,obj):
-		return str((Foto.objects.filter(ticket__id=obj.id).count()/obj.cantidadFotos)*100)
+		return str((Foto.objects.filter(ticket__id=obj.id).count()/obj.cantidadFotos)*100) + '%'
 
 class TicketLiteSerializer(serializers.HyperlinkedModelSerializer):
 	class Meta:

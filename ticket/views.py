@@ -22,6 +22,8 @@ from .serializers import UserAppSerializer, TicketSerializer, FotoSerializer
 
 from .tasks import uploadPhotoTask
 
+from rest_framework.authtoken.models import Token
+
 class TicketViewSet(viewsets.ModelViewSet):
 	"""
 		Retorna una lista de tickets a los que tiene acceso, bajo la estructura 
@@ -42,7 +44,6 @@ class TicketViewSet(viewsets.ModelViewSet):
 	model=Ticket
 	queryset = model.objects.all()
 	serializer_class = TicketSerializer
-	paginate_by = 10
 	module_name='tickets.ticket'
 
 	def retrieve(self,request,*args, **kwargs):
@@ -109,8 +110,10 @@ class TicketViewSet(viewsets.ModelViewSet):
 					respuesta = Structure.success('El registro se ha guardado correctamente' ,None)
 					return Response(respuesta)
 				else:
+					errores=''
 					transaction.savepoint_rollback(sid)
-					for x in serializer_usuario.errors:						
+					print (serializer.errors)
+					for x in serializer.errors:						
 						errores= errores + serializer.errors[x][0]+'\n'					
 						respuesta=Structure.error(errores)
 						return Response(respuesta, status=status.HTTP_400_BAD_REQUEST)
@@ -127,7 +130,6 @@ class FotoViewSet(viewsets.ModelViewSet):
 	model=Foto
 	queryset = model.objects.all()
 	serializer_class = FotoSerializer
-	paginate_by = 10
 	module_name='tickets.foto'
 	parser_classes = (MultiPartParser,FormParser,)
 
@@ -151,7 +153,8 @@ class FotoViewSet(viewsets.ModelViewSet):
 			queryset = super(FotoViewSet, self).get_queryset()
 			ticket = self.request.query_params.get('ticket', None)
 			user_id = request.user.id
-			
+			print ('ticket: ')
+			print (ticket)
 			qset = (Q(ticket__user__id=user_id))
 			if ticket:
 				qset = qset & (Q(ticket__id=ticket))
@@ -211,17 +214,22 @@ class FotoViewSet(viewsets.ModelViewSet):
 					return Response(respuesta)
 
 def uploadPhoto(request):
-	import pdb; pdb.set_trace()
-	if request.method=='POST':
-		try:
-			f = Foto(
-				ticket_id=request.POST['ticket_id'],
-				foto=request.FILES['foto']
-				)
-			uploadPhotoTask.delay(f)
-			respuesta = Structure.success('El registro se ha guardado correctamente, carga del archivo en progreso...' ,None)
-			return Response(respuesta)			
-		except Exception as e:
-			functions.toLog(e,'uploadPhoto')
-			respuesta = Structure.error500()
-			return Response(respuesta)
+	token=Token.objects.filter(key=request.POST['Authorization'].split(' ')[1])
+	if token:
+		if request.method=='POST':
+			try:
+				f = Foto(
+					ticket_id=request.POST['ticket_id'],
+					foto=request.FILES['foto']
+					)
+				uploadPhotoTask.delay(f)
+				respuesta = Structure.success('El registro se ha guardado correctamente,' + 
+					'carga del archivo en progreso...' ,None)
+				# return Response(respuesta)	
+				return JsonResponse(respuesta)			
+			except Exception as e:
+				functions.toLog(e,'uploadPhoto')
+				respuesta = Structure.error500()
+				return Response(respuesta)
+	else:
+		return JsonResponse(Structure.error('Las credenciales de autenticacion no se proveyeron...'))

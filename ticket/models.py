@@ -1,11 +1,19 @@
 from django.db import models
 from django.conf import settings
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+from rest_framework.authtoken.models import Token
 
 import cloudinary
 import cloudinary.uploader
 import cloudinary.api
 
 from cloudinary.models import CloudinaryField
+
+@receiver(post_save, sender=settings.AUTH_USER_MODEL)
+def create_auth_token(sender, instance=None, created=False, **kwargs):
+	if created:
+		Token.objects.create(user=instance)
 
 class Ticket(models.Model):
 	user = models.ForeignKey(settings.AUTH_USER_MODEL ,on_delete=models.PROTECT)
@@ -48,7 +56,9 @@ class Foto(models.Model):
 			self.ticket.save()
 
 	def upload_file(self):
-		import pdb; pdb.set_trace()
+		print ('Cargando...')
+		print (self.ticket)
+		print (self.foto)
 		f = Foto(
 			ticket=self.ticket,
 			foto=self.foto
