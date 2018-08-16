@@ -99,13 +99,13 @@ class TicketViewSet(viewsets.ModelViewSet):
 
 	@transaction.atomic
 	def create(self, request, *args, **kwargs):
-		#import pdb; pdb.set_trace()
+		
 		if request.method == 'POST':
 			sid = transaction.savepoint()
 			try:
 				serializer = TicketSerializer(data=request.POST,context={'request': request})
 				if serializer.is_valid():
-					serializer.save(user_id=request.POST['user_id'])
+					serializer.save(user_id=Token.objects.get(key=request.auth).user_id)
 					transaction.savepoint_commit(sid)
 					respuesta = Structure.success('El registro se ha guardado correctamente' ,None)
 					return Response(respuesta)
